@@ -1,28 +1,10 @@
-import struct
 import numpy as np
+import struct
 import gzip
 try:
     from simple_ml_ext import *
 except:
     pass
-
-
-def add(x, y):
-    """ A trivial 'add' function you should implement to get used to the
-    autograder and submission system.  The solution to this problem is in the
-    the homework notebook.
-
-    Args:
-        x (Python number or numpy array)
-        y (Python number or numpy array)
-
-    Return:
-        Sum of x + y
-    """
-    ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
-
 
 def parse_mnist(image_filename, label_filename):
     """ Read an images and labels file in MNIST format.  See this page:
@@ -47,9 +29,20 @@ def parse_mnist(image_filename, label_filename):
                 labels of the examples.  Values should be of type np.uint8 and
                 for MNIST will contain the values 0-9.
     """
-    ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    with gzip.open(image_filename, "rb") as img_file:
+        magic_num, img_num, row, col = struct.unpack(">4i", img_file.read(16))
+        assert(magic_num == 2051)
+        pixels = row * col
+        X = np.vstack([np.array(struct.unpack(f"{pixels}B", img_file.read(pixels)), dtype=np.float32) for _ in range(img_num)])
+        X -= np.min(X)
+        X /= np.max(X)
+
+    with gzip.open(label_filename, "rb") as label_file:
+        magic_num, label_num = struct.unpack(">2i", label_file.read(8))
+        assert(magic_num == 2049)
+        y = np.array(struct.unpack(f"{label_num}B", label_file.read()), dtype=np.uint8)
+
+    return X, y
 
 
 def softmax_loss(Z, y):
@@ -167,8 +160,10 @@ def train_nn(X_tr, y_tr, X_te, y_te, hidden_dim = 500,
 if __name__ == "__main__":
     X_tr, y_tr = parse_mnist("data/train-images-idx3-ubyte.gz",
                              "data/train-labels-idx1-ubyte.gz")
+    print(X_tr, y_tr)
     X_te, y_te = parse_mnist("data/t10k-images-idx3-ubyte.gz",
                              "data/t10k-labels-idx1-ubyte.gz")
+    print(X_te, y_te)
 
     print("Training softmax regression")
     train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.1)
