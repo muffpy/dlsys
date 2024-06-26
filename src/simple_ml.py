@@ -94,7 +94,7 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
         yy = y[i * batch : (i+1) * batch]
 
         Z = np.exp(x @ theta)
-        Z = Z / np.sum(Z, axis=1, keepdims=True)
+        Z /= np.sum(Z, axis=1, keepdims=True)
 
         I = np.zeros((batch, theta.shape[1])) ## (batch x num_classes)
         I[np.arange(batch), yy] = 1 ## one-hot bases for labels in y
@@ -125,10 +125,28 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
     Returns:
         None
     """
-    ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    iters = (y.size + batch - 1) // batch
+    for i in range(iters):
+        x = X[i * batch : (i+1) * batch, :]
+        yy = y[i * batch : (i+1) * batch]
 
+        z1 = x @ W1
+        z1[z1 < 0] = 0 
+
+        G2 = np.exp(z1 @ W2)
+        G2 /= np.sum(G2, axis=1, keepdims=True)
+        I = np.zeros((batch, y.max() + 1))
+        I[np.arange(batch), yy] = 1
+        G2 -= I
+
+        G1 = np.zeros_like(z1)
+        G1[z1 > 0] = 1
+        G1 *= (G2 @ W2.T)
+
+        grad1 = x.T @ G1 / batch
+        grad2 = z1.T @ G2 / batch
+        W1 -= lr * grad1
+        W2 -= lr * grad2
 
 
 ### CODE BELOW IS FOR ILLUSTRATION, YOU DO NOT NEED TO EDIT
@@ -181,7 +199,7 @@ if __name__ == "__main__":
     # print(X_te, y_te)
 
     print("Training softmax regression")
-    train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.1)
+    train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.2, batch=100)
 
     print("\nTraining two layer neural network w/ 100 hidden units")
     train_nn(X_tr, y_tr, X_te, y_te, hidden_dim=100, epochs=20, lr = 0.2)
