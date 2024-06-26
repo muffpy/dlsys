@@ -6,6 +6,9 @@ try:
 except:
     pass
 
+import sys
+# np.set_printoptions(threshold=sys.maxsize)
+
 def parse_mnist(image_filename, label_filename):
     """ Read an images and labels file in MNIST format.  See this page:
     http://yann.lecun.com/exdb/mnist/ for a description of the file format.
@@ -60,8 +63,10 @@ def softmax_loss(Z, y):
     Returns:
         Average softmax loss over the sample.
     """
-    return (np.sum(np.log(np.sum(np.exp(Z), axis=1))) - np.sum(Z[np.arange(y.size), y]))/y.size
-
+    # softmax_loss = sum [ log_sum_Z - Z(y) ] / batch_size
+    log_sum_Z = np.log(np.sum(np.exp(Z), axis=1))
+    Z_y = Z[np.arange(y.size), y]
+    return (np.sum(log_sum_Z - Z_y))/y.size
 
 
 def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
@@ -159,10 +164,10 @@ def train_nn(X_tr, y_tr, X_te, y_te, hidden_dim = 500,
 if __name__ == "__main__":
     X_tr, y_tr = parse_mnist("data/train-images-idx3-ubyte.gz",
                              "data/train-labels-idx1-ubyte.gz")
-    print(X_tr, y_tr)
+    # print(X_tr, y_tr)
     X_te, y_te = parse_mnist("data/t10k-images-idx3-ubyte.gz",
                              "data/t10k-labels-idx1-ubyte.gz")
-    print(X_te, y_te)
+    # print(X_te, y_te)
 
     print("Training softmax regression")
     train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.1)
