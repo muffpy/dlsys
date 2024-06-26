@@ -87,10 +87,21 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     Returns:
         None
     """
-    ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    num_examples = y.size
+    iters = (num_examples + batch - 1) // batch ## ceil division
+    for i in range(iters):
+        x = X[i * batch : (i+1) * batch, :]
+        yy = y[i * batch : (i+1) * batch]
 
+        Z = np.exp(x @ theta)
+        Z = Z / np.sum(Z, axis=1, keepdims=True)
+
+        I = np.zeros((batch, theta.shape[1])) ## (batch x num_classes)
+        I[np.arange(batch), yy] = 1 ## one-hot bases for labels in y
+
+        grad = x.T @ (Z - I) / batch
+        assert(grad.shape == theta.shape)
+        theta -= lr * grad
 
 def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
     """ Run a single epoch of SGD for a two-layer neural network defined by the
