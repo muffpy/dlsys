@@ -1,1 +1,2 @@
-# Deep Learning Systems (10-414/714): building a deep learning library
+libdeep is a PyTorch-like deep learning library written in C++ and Python with: automatic differentiation; gradient-based optimization of models; support for standard
+operators like convolutions, recurrent structure, self-attention; and efficient linear algebra on both CPU and GPU devices.
