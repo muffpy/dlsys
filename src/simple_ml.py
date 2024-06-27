@@ -149,8 +149,6 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         W2 -= lr * grad2
 
 
-### CODE BELOW IS FOR ILLUSTRATION, YOU DO NOT NEED TO EDIT
-
 def loss_err(h,y):
     """ Helper funciton to compute both loss and error"""
     return softmax_loss(h,y), np.mean(h.argmax(axis=1) != y)
@@ -202,4 +200,4 @@ if __name__ == "__main__":
     train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.2, batch=100)
 
     print("\nTraining two layer neural network w/ 100 hidden units")
-    train_nn(X_tr, y_tr, X_te, y_te, hidden_dim=100, epochs=20, lr = 0.2)
+    train_nn(X_tr, y_tr, X_te, y_te, hidden_dim=500, epochs=20, lr = 0.2)

@@ -5,7 +5,6 @@
 
 namespace py = pybind11;
 
-
 void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
 								  float *theta, size_t m, size_t n, size_t k,
 								  float lr, size_t batch)
@@ -19,7 +18,7 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
      * Args:
      *     X (const float *): pointer to X data, of size m*n, stored in row
      *          major (C) format
-     *     y (const unsigned char *): pointer to y data, of size m
+     *     y (const unsigned char *): pointer to y data, of size 1*m
      *     theta (float *): pointer to theta data, of size n*k, stored in row
      *          major (C) format
      *     m (size_t): number of examples
@@ -30,18 +29,69 @@ void softmax_regression_epoch_cpp(const float *X, const unsigned char *y,
      *
      * Returns:
      *     (None)
+     * 
+     * X: (m*n)
+     * y: (1*m)
+     * theta: (n*k)
      */
 
-    /// BEGIN YOUR CODE
+    int iters = (m + batch - 1) / batch;
+    for (int iter = 0; iter < iters; iter++) {
+        const float *x = &X[iter * batch * n];
+        const unsigned char *yy = &y[iter * batch];
 
-    /// END YOUR CODE
+        // Z = x @ theta
+        // x:(batch*n), theta:(n*k), Z:(batch*k)
+        float *Z = new float[batch * k];
+        for (int i = 0; i < batch; i++)
+            for (int j = 0; j < k; j++) 
+            {
+                Z[i * k + j] = 0;
+                for (int s = 0; s < n; s++)
+                    Z[i * k + j] += x[i * n + s] * theta[s * k + j];
+            }
+
+        // Z = normalise(exp(Z))
+        for (int i = 0; i < batch * k; i++) Z[i] = exp(Z[i]);
+        for (int i = 0; i < batch; i++) {
+            float sum = 0;
+            for (int j = 0; j < k; j++) sum += Z[i * k + j];
+            for (int j = 0; j < k; j++) Z[i * k + j] /= sum; // row-wise normalization
+        }
+
+        // Z = Z - I
+        for (int i = 0; i < batch; i++) Z[i * k + yy[i]] -= 1; // minus one-hot vector
+
+        // x.T
+        float *x_T = new float[n * batch];
+        for (int i = 0; i < batch; i++) 
+            for (int j = 0; j < n; j++) 
+                x_T[j * batch + i] = x[i * n + j];
+        
+        // grad = x.T @ Z
+        // grad: (n*k), x_T: (n*batch), Z:(batch*k)
+        float *grad = new float[n * k];
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < k; j++) 
+            {
+                grad[i * k + j] = 0;
+                for (int s = 0; s < batch; s++)
+                    grad[i * k + j] += x_T[i * batch + s] * Z[s * k + j];
+            }
+        
+        // update theta
+        for (int i = 0; i < n * k; i++) theta[i] -= lr / batch * grad[i];
+
+        delete[] Z;
+        delete[] x_T;
+        delete[] grad;
+    }
 }
 
 
 /**
  * This is the pybind11 code that wraps the function above.  It's only role is
- * wrap the function above in a Python module, and you do not need to make any
- * edits to the code
+ * wrap the function above in a Python module.
  */
 PYBIND11_MODULE(simple_ml_ext, m) {
     m.def("softmax_regression_epoch_cpp",
