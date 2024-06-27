@@ -196,8 +196,11 @@ if __name__ == "__main__":
                              "data/t10k-labels-idx1-ubyte.gz")
     # print(X_te, y_te)
 
-    print("Training softmax regression")
+    print("Training softmax regression (Python)")
     train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.2, batch=100)
 
+    print("Training softmax regression (C++)")
+    train_softmax(X_tr, y_tr, X_te, y_te, epochs=10, lr = 0.2, batch=100, cpp=True)
+
     print("\nTraining two layer neural network w/ 100 hidden units")
-    train_nn(X_tr, y_tr, X_te, y_te, hidden_dim=500, epochs=20, lr = 0.2)
+    train_nn(X_tr, y_tr, X_te, y_te, hidden_dim=100, epochs=20, lr = 0.2)
